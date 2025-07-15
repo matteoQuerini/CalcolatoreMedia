@@ -1,6 +1,5 @@
-using UnityEngine;
-
-public class TipoVoto
-{
-    
+public enum TipoEsame {
+    ORALE,
+    SCRITTO,
+    PRATICO
 }
