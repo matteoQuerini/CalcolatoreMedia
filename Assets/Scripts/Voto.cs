@@ -18,50 +18,61 @@ public abstract class Voto
         this.data = data;
     }
 
-    public double GetValutazione(){
+    public double GetValutazione()
+    {
         return valutazione;
     }
 
-    public void SetValutazione(double value){
+    public void SetValutazione(double value)
+    {
         valutazione = value;
     }
 
-    public double GetPeso(){
+    public double GetPeso()
+    {
 
         return peso;
     }
-    
-    public void SetPeso(double value){
+
+    public void SetPeso(double value)
+    {
 
         peso = value;
     }
-    
-    public DateTime GetData(){
+
+    public DateTime GetData()
+    {
         return data;
     }
 
-    public void SetData(DateTime value){
+    public void SetData(DateTime value)
+    {
         data = value;
     }
 
-    public TipoEsame GetTipo(){
+    public TipoEsame GetTipo()
+    {
         return tipo;
     }
 
-    public void SetTipo(TipoEsame value){
+    public void SetTipo(TipoEsame value)
+    {
         tipo = value;
     }
 
-    public string GetDescrizione(){
+    public string GetDescrizione()
+    {
         return descrizione;
     }
 
-    public void SetDescrizione(string value){
+    public void SetDescrizione(string value)
+    {
         descrizione = value;
     }
 
 
-    public double getPunteggioEffettivo(){
+    public double getPunteggioEffettivo()
+    {
         return GetValutazione() * GetPeso();
     }
 
