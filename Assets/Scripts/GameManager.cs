@@ -36,10 +36,11 @@ public class GameManager : MonoBehaviour
 
         InitializeTipoEsameDropdown();
 
+        // Aggiungi un corso per testare l'aggiunta di voti
         Corso matematica = new Corso("Matematica");
         aggiungiCorso(matematica);
         currentCorso = matematica;
-        Debug.Log("Corso fittizio 'Matematica' aggiunto e impostato come corrente.");
+        Debug.Log("Corso Matematica aggiunto e impostato come corrente");
     }
 
     public void aggiungiCorso(Corso corso)
@@ -95,19 +96,24 @@ public class GameManager : MonoBehaviour
             {
                 opzioni.Add(tipo.ToString());
             }
+            //aggiunge le stringhe della lista opzioni al menu a tendina del dropdown
             tipoEsameDropdown.AddOptions(opzioni);
+
+            //aggiuorna la visualizazione del menu a tendina
             tipoEsameDropdown.RefreshShownValue();
         }
     }
 
     public void OnAggiungiVotoButtonClick()
     {
+        //controlla se è stato selezionato un corso a cui aggiungere il voto
         if (currentCorso == null)
         {
             Debug.LogError("Nessun Corso selezionato a cui aggiungere un Voto.");
             return;
         }
 
+        //converte l'input della valutazione in numero, se non riesce stampa un errore (string to doublòe)
         if (!double.TryParse(valutazioneInputField.text, out double valutazione))
         {
             Debug.LogError("Input Valutazione non valido. Inserisci un numero.");
@@ -120,65 +126,85 @@ public class GameManager : MonoBehaviour
         }
 
         DateTime data;
+        //converte l'input della data in DateTime, se non riesce stampa un errore (string to DateTime)
         if (!DateTime.TryParseExact(dataInputField.text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out data))
         {
             Debug.LogError("Input Data non valido. Utilizza il formato AAAA-MM-GG.");
             return;
         }
 
+        //controlla se il tipo di esame è stato selezionato
         TipoEsame tipo = (TipoEsame)tipoEsameDropdown.value;
 
+        //crea un nuovo oggetto Voto con i dati inseriti
         Voto nuovoVoto = new Voto(valutazione, peso, data, tipo);
 
+        //aggiunge il voto al corso corrente
         aggiungiVoto(currentCorso, nuovoVoto);
+
+        //$ usato per usare le {}
         Debug.Log($"Added Voto: {nuovoVoto.valutazione} (Peso: {nuovoVoto.peso}) to {currentCorso.materia}");
 
+        //chiama la funzione per visualizzare il voto nella UI
         DisplayVotoInUI(nuovoVoto);
 
-        valutazioneInputField.text = "";
-        pesoInputField.text = "";
-        dataInputField.text = "";
-        tipoEsameDropdown.value = 0;
+        //resetta i campi di input
+        ResetInputFields();
+    }
+
+    void ResetInputFields()
+    {
+        if (valutazioneInputField != null)
+        {
+            valutazioneInputField.text = "";
+        }
+
+        if (pesoInputField != null)
+        {
+            pesoInputField.text = "";
+        }
+
+        if (dataInputField != null)
+        {
+            dataInputField.text = "";
+        }
+
+        if (tipoEsameDropdown != null)
+        {
+            tipoEsameDropdown.value = 0;
+        }
     }
 
     void DisplayVotoInUI(Voto voto)
     {
+        //verifica se il pannello di destinazione è assegnato
         if (valutazioniContentPanel == null)
         {
             Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato nell'Inspector.");
             return;
         }
 
-        if (votoUIPrefab == null)
+        //verifica se il prefab UI Voto è assegnato
+        if (votoUIPrefab != null)
         {
-            Debug.LogWarning("Il Prefab UI Voto non è assegnato. Visualizzazione con un elemento Text predefinito.");
-            GameObject votoGO = new GameObject($"Voto_{voto.data.ToString("yyyyMMdd")}_{voto.valutazione}");
-            votoGO.transform.SetParent(valutazioniContentPanel, false);
-            Text votoText = votoGO.AddComponent<Text>();
-            votoText.text = $"Voto: {voto.valutazione}, Peso: {voto.peso}, Data: {voto.data.ToShortDateString()}, Tipo: {voto.tipo}";
-            votoText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            votoText.color = Color.black;
-            votoText.fontSize = 20;
-            RectTransform rectTransform = votoGO.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(valutazioniContentPanel.GetComponent<RectTransform>().rect.width, 40);
-            LayoutElement layoutElement = votoGO.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 40;
-            layoutElement.flexibleHeight = 0;
-            layoutElement.minHeight = 40;
+            //crea un'stanzia un nuovo oggetto UI Voto dal prefab
+            GameObject voto = Instantiate(votoUIPrefab, valutazioniContentPanel);
 
-        }
-        else
-        {
-            GameObject votoGO = Instantiate(votoUIPrefab, valutazioniContentPanel);
-            Text votoText = votoGO.GetComponentInChildren<Text>();
+            Text votoText = voto.GetComponentInChildren<Text>();
+
             if (votoText != null)
             {
                 votoText.text = $"Voto: {voto.valutazione}, Peso: {voto.peso}, Data: {voto.data.ToShortDateString()}, Tipo: {voto.tipo}";
             }
             else
             {
-                Debug.LogWarning("VotoUIPrefab does not have a Text component in its children. Please add one or modify DisplayVotoInUI.");
+                Debug.LogWarning("Il VotoUIPrefab non ha un componente Text tra i suoi figli. Aggiungerne uno o modifica DisplayVotoInUI.");
             }
+            
+        }
+        else
+        {
+            Debug.LogWarning("Il Prefab UI Voto non è assegnato, visualizzazione con un elemento Text predefinito");
         }
     }
 }
