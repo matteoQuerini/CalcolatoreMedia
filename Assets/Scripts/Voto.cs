@@ -1,17 +1,15 @@
 using UnityEngine;
 using System;
 
-public abstract class Voto
+public class Voto
 {
     public double valutazione;
     public double peso;
     public DateTime data;
     public TipoEsame tipo;
-    public string descrizione;
 
-    public Voto(double valutazione, double peso, DateTime data, TipoEsame tipo, string descrizione)
+    public Voto(double valutazione, double peso, DateTime data, TipoEsame tipo)
     {
-        this.descrizione = descrizione;
         this.valutazione = valutazione;
         this.peso = peso;
         this.tipo = tipo;
@@ -58,16 +56,6 @@ public abstract class Voto
     public void SetTipo(TipoEsame value)
     {
         tipo = value;
-    }
-
-    public string GetDescrizione()
-    {
-        return descrizione;
-    }
-
-    public void SetDescrizione(string value)
-    {
-        descrizione = value;
     }
 
 
