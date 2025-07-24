@@ -15,10 +15,11 @@ public class GameManager : MonoBehaviour
     public InputField dataInputField;
     public TMP_Dropdown tipoEsameDropdown;
 
-    public Button aggiungiVotoButton;
+    public Button Aggiungi;
     public Transform valutazioniContentPanel;
     public Corso currentCorso;
     public GameObject votoUIPrefab;
+    public GameObject inserimentoVotoPanel;
 
     //Chiamato una sola volta all'inizio prima di qualsiasi altro metodo, simile a start(inizializzare variabili/strutture dati)
     void Awake()
@@ -29,11 +30,15 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (aggiungiVotoButton != null)
+        if (Aggiungi != null)
         {
-            aggiungiVotoButton.onClick.AddListener(OnAggiungiVotoButtonClick);
+            Aggiungi.onClick.AddListener(aggiungiVotoButtonClick);
         }
 
+        if (inserimentoVotoPanel != null)
+        {
+            inserimentoVotoPanel.SetActive(false);
+        }
         InitializeTipoEsameDropdown();
 
         // Aggiungi un corso per testare l'aggiunta di voti
@@ -57,6 +62,15 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogError("Corso non trovato.");
+        }
+    }
+
+    public void CambiaVisibilitaVotoPanel()
+    {
+        if (inserimentoVotoPanel != null)
+        {
+            bool isActive = !inserimentoVotoPanel.activeSelf;
+            inserimentoVotoPanel.SetActive(isActive);
         }
     }
 
@@ -86,7 +100,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-      void InitializeTipoEsameDropdown()
+    void InitializeTipoEsameDropdown()
     {
         if (tipoEsameDropdown != null)
         {
@@ -104,8 +118,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnAggiungiVotoButtonClick()
+    public void aggiungiVotoButtonClick()
     {
+
+
+        Debug.Log("Valore Valutazione: " + valutazioneInputField.text);
+        Debug.Log("Valore Peso: " + pesoInputField.text);
+        Debug.Log("Valore Data: " + dataInputField.text);
+
+        //debug per controllare se il pannello dell inserimento voit è attivo
+
+        if (!inserimentoVotoPanel.activeSelf)
+        {
+            Debug.LogWarning("Il pannello di inserimento è disattivato");
+            return;
+        }
+
+
+
         //controlla se è stato selezionato un corso a cui aggiungere il voto
         if (currentCorso == null)
         {
@@ -177,10 +207,10 @@ public class GameManager : MonoBehaviour
 
     void DisplayVotoInUI(Voto voto)
     {
-        //verifica se il pannello di destinazione è assegnato
+        //verifica se il pannello di destinazione è assegnato su unity
         if (valutazioniContentPanel == null)
         {
-            Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato nell'Inspector.");
+            Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato nell'Inspector");
             return;
         }
 
@@ -188,9 +218,9 @@ public class GameManager : MonoBehaviour
         if (votoUIPrefab != null)
         {
             //crea un'stanzia un nuovo oggetto UI Voto dal prefab
-            GameObject voto = Instantiate(votoUIPrefab, valutazioniContentPanel);
+            GameObject votoUI = Instantiate(votoUIPrefab, valutazioniContentPanel);
 
-            Text votoText = voto.GetComponentInChildren<Text>();
+            TextMeshProUGUI votoText = votoUI.GetComponentInChildren<TextMeshProUGUI>();
 
             if (votoText != null)
             {
@@ -198,13 +228,12 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Il VotoUIPrefab non ha un componente Text tra i suoi figli. Aggiungerne uno o modifica DisplayVotoInUI.");
+                Debug.LogWarning("Il VotoUIPrefab non ha un componente Text tra i suoi figli");
             }
-            
         }
         else
         {
-            Debug.LogWarning("Il Prefab UI Voto non è assegnato, visualizzazione con un elemento Text predefinito");
+            Debug.LogWarning("Il Prefab UI Voto non è assegnato");
         }
     }
 }
