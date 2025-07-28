@@ -41,7 +41,6 @@ public class GameManager : MonoBehaviour
         }
         InitializeTipoEsameDropdown();
 
-        // Aggiungi un corso per testare l'aggiunta di voti
         Corso matematica = new Corso("Matematica");
         aggiungiCorso(matematica);
         currentCorso = matematica;
@@ -180,6 +179,7 @@ public class GameManager : MonoBehaviour
 
         //resetta i campi di input
         ResetInputFields();
+        inserimentoVotoPanel.SetActive(false);
     }
 
     void ResetInputFields()
@@ -207,33 +207,30 @@ public class GameManager : MonoBehaviour
 
     void DisplayVotoInUI(Voto voto)
     {
-        //verifica se il pannello di destinazione è assegnato su unity
         if (valutazioniContentPanel == null)
         {
-            Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato nell'Inspector");
+            Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato");
             return;
         }
 
-        //verifica se il prefab UI Voto è assegnato
         if (votoUIPrefab != null)
         {
-            //crea un'stanzia un nuovo oggetto UI Voto dal prefab
             GameObject votoUI = Instantiate(votoUIPrefab, valutazioniContentPanel);
 
-            TextMeshProUGUI votoText = votoUI.GetComponentInChildren<TextMeshProUGUI>();
+            TextMeshProUGUI[] testi = votoUI.GetComponentsInChildren<TextMeshProUGUI>();
 
-            if (votoText != null)
+            if (testi.Length > 0)
             {
-                votoText.text = $"Voto: {voto.valutazione}, Peso: {voto.peso}, Data: {voto.data.ToShortDateString()}, Tipo: {voto.tipo}";
+                 testi[0].text = $"voto: {voto.valutazione}\npeso: {voto.peso}\ndata: {voto.data:yyyy-MM-dd}";
             }
             else
             {
-                Debug.LogWarning("Il VotoUIPrefab non ha un componente Text tra i suoi figli");
+                Debug.LogWarning("Nessun componente TextMeshPro trovato nel prefab");
             }
         }
         else
         {
-            Debug.LogWarning("Il Prefab UI Voto non è assegnato");
+            Debug.LogWarning("Prefab UI Voto non assegnato");
         }
     }
 }
