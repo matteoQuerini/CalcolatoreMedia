@@ -4,6 +4,7 @@ using TMPro;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,12 +21,26 @@ public class GameManager : MonoBehaviour
     public Corso currentCorso;
     public GameObject votoUIPrefab;
     public GameObject inserimentoVotoPanel;
+    
+    //griglia modificabile nekll ispector
+    private GridLayoutGroup gridLayoutGroup;
+    
+    public int colonne = 3;
+    public Vector2 dimensioneCella = new Vector2(180, 100);
+    public Vector2 spaziatura = new Vector2(10, 10);
 
-    //Chiamato una sola volta all'inizio prima di qualsiasi altro metodo, simile a start(inizializzare variabili/strutture dati)
     void Awake()
     {
         corsi = new List<Corso>();
         medieCorsi = new Dictionary<Corso, double>();
+        
+        gridLayoutGroup = valutazioniContentPanel.GetComponent<GridLayoutGroup>();
+        if(gridLayoutGroup == null)
+        {
+            gridLayoutGroup = valutazioniContentPanel.gameObject.AddComponent<GridLayoutGroup>();
+        }
+        
+        ConfiguraGriglia();
     }
 
     void Start()
@@ -45,6 +60,44 @@ public class GameManager : MonoBehaviour
         aggiungiCorso(matematica);
         currentCorso = matematica;
         Debug.Log("Corso Matematica aggiunto e impostato come corrente");
+    }
+
+    //metodo per configurare la griglia
+    public void ConfiguraGriglia()
+    {
+        if(gridLayoutGroup != null)
+        {
+            gridLayoutGroup.cellSize = dimensioneCella;
+            gridLayoutGroup.spacing = spaziatura;
+            gridLayoutGroup.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            gridLayoutGroup.startAxis = GridLayoutGroup.Axis.Horizontal;
+            gridLayoutGroup.childAlignment = TextAnchor.UpperLeft;
+            gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayoutGroup.constraintCount = colonne;
+        }
+    }
+
+    //cambia il numero di celle a run rime
+    public void CambiaNumeroColonne(int nuoveColonne)
+    {
+        colonne = nuoveColonne;
+        ConfiguraGriglia();
+        AggiornaLayout();
+    }
+
+    //cambiare dimensione celle a runtime
+    public void CambiaDimensioneCelle(float larghezza, float altezza)
+    {
+        dimensioneCella = new Vector2(larghezza, altezza);
+        ConfiguraGriglia();
+        AggiornaLayout();
+    }
+
+    private void AggiornaLayout()
+    {
+        LayoutRebuilder.ForceRebuildLayoutImmediate(
+            valutazioniContentPanel.GetComponent<RectTransform>()
+        );
     }
 
     public void aggiungiCorso(Corso corso)
@@ -109,23 +162,16 @@ public class GameManager : MonoBehaviour
             {
                 opzioni.Add(tipo.ToString());
             }
-            //aggiunge le stringhe della lista opzioni al menu a tendina del dropdown
             tipoEsameDropdown.AddOptions(opzioni);
-
-            //aggiuorna la visualizazione del menu a tendina
             tipoEsameDropdown.RefreshShownValue();
         }
     }
 
     public void aggiungiVotoButtonClick()
     {
-
-
         Debug.Log("Valore Valutazione: " + valutazioneInputField.text);
         Debug.Log("Valore Peso: " + pesoInputField.text);
         Debug.Log("Valore Data: " + dataInputField.text);
-
-        //debug per controllare se il pannello dell inserimento voit è attivo
 
         if (!inserimentoVotoPanel.activeSelf)
         {
@@ -133,16 +179,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-
-
-        //controlla se è stato selezionato un corso a cui aggiungere il voto
         if (currentCorso == null)
         {
             Debug.LogError("Nessun Corso selezionato a cui aggiungere un Voto.");
             return;
         }
 
-        //converte l'input della valutazione in numero, se non riesce stampa un errore (string to doublòe)
         if (!double.TryParse(valutazioneInputField.text, out double valutazione))
         {
             Debug.LogError("Input Valutazione non valido. Inserisci un numero.");
@@ -150,34 +192,24 @@ public class GameManager : MonoBehaviour
         }
         if (!double.TryParse(pesoInputField.text, out double peso))
         {
-            Debug.LogError("Invalid Peso input. Please enter a number.");
+            Debug.LogError("Input Peso non valido. Inserisci un numero.");
             return;
         }
 
         DateTime data;
-        //converte l'input della data in DateTime, se non riesce stampa un errore (string to DateTime)
         if (!DateTime.TryParseExact(dataInputField.text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out data))
         {
             Debug.LogError("Input Data non valido. Utilizza il formato AAAA-MM-GG.");
             return;
         }
 
-        //controlla se il tipo di esame è stato selezionato
         TipoEsame tipo = (TipoEsame)tipoEsameDropdown.value;
-
-        //crea un nuovo oggetto Voto con i dati inseriti
         Voto nuovoVoto = new Voto(valutazione, peso, data, tipo);
-
-        //aggiunge il voto al corso corrente
         aggiungiVoto(currentCorso, nuovoVoto);
 
-        //$ usato per usare le {}
         Debug.Log($"Added Voto: {nuovoVoto.valutazione} (Peso: {nuovoVoto.peso}) to {currentCorso.materia}");
 
-        //chiama la funzione per visualizzare il voto nella UI
         DisplayVotoInUI(nuovoVoto);
-
-        //resetta i campi di input
         ResetInputFields();
         inserimentoVotoPanel.SetActive(false);
     }
@@ -206,31 +238,41 @@ public class GameManager : MonoBehaviour
     }
 
     void DisplayVotoInUI(Voto voto)
+{
+    if (valutazioniContentPanel == null)
     {
-        if (valutazioniContentPanel == null)
+        Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato");
+        return;
+    }
+
+    if (votoUIPrefab != null)
+    {
+        GameObject votoUI = Instantiate(votoUIPrefab, valutazioniContentPanel);
+        
+        LayoutElement layoutElement = votoUI.GetComponent<LayoutElement>();
+        if (layoutElement == null)
         {
-            Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato");
-            return;
+            layoutElement = votoUI.AddComponent<LayoutElement>();
         }
+        layoutElement.preferredWidth = dimensioneCella.x;
+        layoutElement.preferredHeight = dimensioneCella.y;
 
-        if (votoUIPrefab != null)
+        TextMeshProUGUI testo = votoUI.GetComponentInChildren<TextMeshProUGUI>();
+        if (testo != null)
         {
-            GameObject votoUI = Instantiate(votoUIPrefab, valutazioniContentPanel);
-
-            TextMeshProUGUI[] testi = votoUI.GetComponentsInChildren<TextMeshProUGUI>();
-
-            if (testi.Length > 0)
-            {
-                 testi[0].text = $"voto: {voto.valutazione}\npeso: {voto.peso}\ndata: {voto.data:yyyy-MM-dd}";
-            }
-            else
-            {
-                Debug.LogWarning("Nessun componente TextMeshPro trovato nel prefab");
-            }
+            testo.text = $"Voto: {voto.valutazione}\nPeso: {voto.peso}\nData: {voto.data:yyyy-MM-dd}";
         }
         else
         {
-            Debug.LogWarning("Prefab UI Voto non assegnato");
+            Debug.LogWarning("Nessun componente TextMeshPro trovato nel prefab");
         }
     }
+    else
+    {
+        Debug.LogWarning("Prefab UI Voto non assegnato");
+    }
+
+    AggiornaLayout();
+}
+
 }
