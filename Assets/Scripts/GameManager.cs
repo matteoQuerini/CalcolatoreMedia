@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
     List<Corso> corsi;
     public Dictionary<Corso, double> medieCorsi;
 
+    public TMP_Dropdown materiaDropdown;
+
     public InputField valutazioneInputField;
     public InputField pesoInputField;
     public InputField dataInputField;
@@ -56,11 +58,19 @@ public class GameManager : MonoBehaviour
         }
         InitializeTipoEsameDropdown();
 
-        Corso matematica = new Corso("Matematica");
-        aggiungiCorso(matematica);
-        currentCorso = matematica;
-        Debug.Log("Corso Matematica aggiunto e impostato come corrente");
-    }
+        // Aggiungi tutte le materie preimpostate
+        aggiungiCorso(new Corso("Matematica"));
+        aggiungiCorso(new Corso("Italiano"));
+        aggiungiCorso(new Corso("Inglese"));
+        aggiungiCorso(new Corso("Storia"));
+        aggiungiCorso(new Corso("Sistemi e Reti"));
+        aggiungiCorso(new Corso("Informatica"));
+
+        currentCorso = corsi[0];
+        Debug.Log($"Corsi preimpostati aggiunti. Corso corrente: {currentCorso.materia}");
+    
+        InitializeMateriaDropdown();
+}
 
     //metodo per configurare la griglia
     public void ConfiguraGriglia()
@@ -151,6 +161,39 @@ public class GameManager : MonoBehaviour
             medieCorsi[corso] = media;
         }
     }
+
+
+    void InitializeMateriaDropdown()
+{
+    if (materiaDropdown != null)
+    {
+        materiaDropdown.ClearOptions();
+        List<string> opzioni = new List<string>();
+        foreach (Corso corso in corsi)
+        {
+            opzioni.Add(corso.materia);
+        }
+        materiaDropdown.AddOptions(opzioni);
+        materiaDropdown.value = 0;
+        materiaDropdown.RefreshShownValue();
+        
+        //listener per il cambio di materia quando si clicca nel menui
+        materiaDropdown.onValueChanged.AddListener(OnMateriaDropdownChanged);
+    }
+    else
+    {
+        Debug.LogError("Dropdown materie non assegnato");
+    }
+}
+
+private void OnMateriaDropdownChanged(int index)
+{
+    if (index >= 0 && index < corsi.Count)
+    {
+        currentCorso = corsi[index];
+        Debug.Log("Corso corrente cambiato a: " + currentCorso.materia);
+    }
+}
 
     void InitializeTipoEsameDropdown()
     {
@@ -260,7 +303,7 @@ public class GameManager : MonoBehaviour
         TextMeshProUGUI testo = votoUI.GetComponentInChildren<TextMeshProUGUI>();
         if (testo != null)
         {
-            testo.text = $"Voto: {voto.valutazione}\nPeso: {voto.peso}\nData: {voto.data:yyyy-MM-dd}";
+            testo.text = $"Voto: {voto.valutazione}\nPeso: {voto.peso}\nData: {voto.data:yyyy-MM-dd}\nTipo: {voto.tipo}\n Materia: {currentCorso.materia}";
         }
         else
         {
