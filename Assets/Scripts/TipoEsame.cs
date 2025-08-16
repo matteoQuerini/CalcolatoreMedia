@@ -1,6 +1,5 @@
-public enum TipoEsame
-{
-    ORALE,
-    SCRITTO,
-    PRATICO
+public enum TipoEsame {
+  ORALE,
+  SCRITTO,
+  PRATICO
 }
