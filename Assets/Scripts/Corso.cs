@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.Rendering;
 
-//: sono ereditarieta
-public class Corso: Ordinabile < Voto > {
+public class Corso: Ordinabile<Voto> {
   public string materia;
-  public List < Voto > voti;
+  public List<Voto> voti;
+  
   public Corso(string materia) {
     this.materia = materia;
-    this.voti = new List < Voto > ();
+    this.voti = new List<Voto>();
   }
 
   public void AggiungiVoto(Voto voto) {
@@ -20,7 +19,6 @@ public class Corso: Ordinabile < Voto > {
     double sommaPonderata = 0;
     double pesoTotale = 0;
 
-    //in sono i :
     foreach(Voto v in voti) {
       sommaPonderata += v.getPunteggioEffettivo();
       pesoTotale += v.peso;
@@ -33,7 +31,7 @@ public class Corso: Ordinabile < Voto > {
     }
   }
 
-  public void BubbleSort(Comparison < Voto > t) {
+  public void BubbleSort(Comparison<Voto> t) {
     for (int i = 0; i < voti.Count - 1; i++) {
       for (int j = 0; j < voti.Count - i - 1; j++) {
         if (t(voti[j], voti[j + 1]) > 0) {
@@ -58,7 +56,6 @@ public class Corso: Ordinabile < Voto > {
   }
 
   private int ComparaPerValutazione(Voto v1, Voto v2) {
-    return v2.data.CompareTo(v1.data);
+    return v2.valutazione.CompareTo(v1.valutazione);
   }
-
 }

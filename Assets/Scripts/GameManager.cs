@@ -4,12 +4,13 @@ using UnityEngine.UI;
 using UnityEngine;
 using System;
 using TMPro;
+using System.Linq;
 
 //MonoBehaviour classe base di tutti gli script
+
 public class GameManager: MonoBehaviour {
-  private List < Corso > corsi;
-  public Dictionary < Corso, double > medieCorsi;
-  public Corso currentCorso;
+  private List<Corso> corsi;
+  public Dictionary<Corso, double> medieCorsi;
 
   public Transform valutazioniContentPanel;
   public GameObject votoUIPrefab;
@@ -33,24 +34,26 @@ public class GameManager: MonoBehaviour {
   public GameObject mediaUIPrefab;
   public Button mostraMedieButton;
 
-  //usato per inizializazione degli obj 
+  private string ordinamentoCorrente = "corso";
+  
+    //usato per inizializazione degli obj 
   void Awake() {
-    corsi = new List < Corso > ();
+    corsi = new List<Corso>();
     //dictionary = hashmap
-    medieCorsi = new Dictionary < Corso, double > ();
+    medieCorsi = new Dictionary<Corso, double>();
 
-    gridLayoutGroup = valutazioniContentPanel.GetComponent < GridLayoutGroup > ();
+    gridLayoutGroup = valutazioniContentPanel.GetComponent<GridLayoutGroup>();
     if (gridLayoutGroup == null) {
-      gridLayoutGroup = valutazioniContentPanel.gameObject.AddComponent < GridLayoutGroup > ();
+      gridLayoutGroup = valutazioniContentPanel.gameObject.AddComponent<GridLayoutGroup>();
     }
 
     ConfiguraGriglia();
   }
 
   void Start() {
-
     //controllano se gli obj sono assegnati al GameManager
-    if (Aggiungi != null) {
+    if (Aggiungi != null)
+    {
       Aggiungi.onClick.AddListener(aggiungiVotoButtonClick);
     }
 
@@ -72,24 +75,16 @@ public class GameManager: MonoBehaviour {
     aggiungiCorso(new Corso("Sistemi"));
     aggiungiCorso(new Corso("Informatica"));
 
-    //controlla se i corsi sono stati creati e assegna il primo cone standard
-    if (corsi.Count > 0) {
-      currentCorso = corsi[0];
-    }
-
-    //$ serve per inserire variabili direttamente nella stringa
-    //? se currentCorso è null restituisce null invece di terminate
-    Debug.Log($"Corsi preimpostati aggiunti. Corso corrente: {currentCorso?.materia}");
     mostraMedieButton.onClick.AddListener(ToggleMediePanel);
 
     InitializeMateriaDropdown();
-
     RefreshValutazioniGrid();
   }
 
-  //metodo per configurare la griglia
-  public void ConfiguraGriglia() {
-    if (gridLayoutGroup != null) {
+  public void ConfiguraGriglia()
+  {
+    if (gridLayoutGroup != null)
+    {
       gridLayoutGroup.cellSize = dimensioneCella;
       gridLayoutGroup.spacing = spaziatura;
       gridLayoutGroup.startCorner = GridLayoutGroup.Corner.UpperLeft;
@@ -99,44 +94,52 @@ public class GameManager: MonoBehaviour {
       gridLayoutGroup.constraintCount = colonne;
     }
   }
-  //inverte lo stato di visibilit del pannello delle medie
-  public void ToggleMediePanel() {
+
+//apre o chiude il pannello delle medie
+  public void ToggleMediePanel()
+  {
     bool isActive = !mediePanel.activeSelf;
     mediePanel.SetActive(isActive);
 
-    if (isActive) {
+    if (isActive)
+    {
       AggiornaMedieUI();
     }
   }
-
+  
   //cambia il numero di celle a run rime
-  public void CambiaNumeroColonne(int nuoveColonne) {
+  public void CambiaNumeroColonne(int nuoveColonne)
+  {
     colonne = nuoveColonne;
     ConfiguraGriglia();
     AggiornaLayout();
   }
-
+  
   //cambiare dimensione celle a runtime
-  public void CambiaDimensioneCelle(float larghezza, float altezza) {
+  public void CambiaDimensioneCelle(float larghezza, float altezza)
+  {
     dimensioneCella = new Vector2(larghezza, altezza);
     ConfiguraGriglia();
     AggiornaLayout();
   }
 
   //forza la ricostruzione del layout in unity
-  private void AggiornaLayout() {
-    LayoutRebuilder.ForceRebuildLayoutImmediate(valutazioniContentPanel.GetComponent < RectTransform > ());
+  private void AggiornaLayout()
+  {
+    LayoutRebuilder.ForceRebuildLayoutImmediate(valutazioniContentPanel.GetComponent<RectTransform>());
   }
 
   public void aggiungiCorso(Corso corso) {
     corsi.Add(corso);
     AggiornaMedieUI();
     InitializeMateriaDropdown();
+    RefreshValutazioniGrid();
   }
 
   public void aggiungiVoto(Corso corso, Voto voto) {
     if (corsi.Contains(corso)) {
       corso.AggiungiVoto(voto);
+      RefreshValutazioniGrid();
     }
   }
 
@@ -168,8 +171,9 @@ public class GameManager: MonoBehaviour {
   }
 
   public void AggiornaMedieUI() {
-    //controlla se i mediaPanel e mediaUIPrefab sono assegnati
-    if (mediePanel == null || mediaUIPrefab == null) {
+     //controlla se i mediaPanel e mediaUIPrefab sono assegnati
+    if (mediePanel == null || mediaUIPrefab == null)
+    {
       Debug.LogError("Componenti UI medie non assegnati");
       return;
     }
@@ -178,39 +182,41 @@ public class GameManager: MonoBehaviour {
 
     //transform è il ocmponente che ogni gameObject ha in unity
     //indica tutti i figli di mediePanel
-    foreach(Transform child in mediePanel.transform) {
+    foreach (Transform child in mediePanel.transform)
+    {
       //rimuovo dalla memoria i suuoi figli per non avere valori duplicati o sbagliati
       Destroy(child.gameObject);
     }
 
     foreach(Corso corso in corsi) {
       //controlla se il corso ha una media calcolata
-      if (medieCorsi.ContainsKey(corso)) {
+      if (medieCorsi.ContainsKey(corso))
+      {
         double media = medieCorsi[corso];
         //con Instantiate crea una copia di un obj esistente in mem
         GameObject mediaUI = Instantiate(mediaUIPrefab, mediePanel.transform);
 
         //forza il ridimensionamento per il grid layout per impostare uno standard di dimensioni
-        LayoutElement layout = mediaUI.GetComponent < LayoutElement > ();
-        if (layout == null) layout = mediaUI.AddComponent < LayoutElement > ();
+        LayoutElement layout = mediaUI.GetComponent<LayoutElement>();
+        if (layout == null) layout = mediaUI.AddComponent<LayoutElement>();
         layout.preferredWidth = 150;
         layout.preferredHeight = 70;
 
-        TextMeshProUGUI testo = mediaUI.GetComponentInChildren < TextMeshProUGUI > ();
-        if (testo != null) {
-          testo.text = $ "{corso.materia}\n{media.ToString("
-          0.00 ")}";
+        TextMeshProUGUI testo = mediaUI.GetComponentInChildren<TextMeshProUGUI>();
+        if (testo != null)
+        {
+          testo.text = $"{corso.materia}\n{media.ToString("0.00")}";
         }
       }
     }
     //ricalcola il layout per aggiornare la visualizzazione
-    LayoutRebuilder.ForceRebuildLayoutImmediate(mediePanel.GetComponent < RectTransform > ());
+    LayoutRebuilder.ForceRebuildLayoutImmediate(mediePanel.GetComponent<RectTransform>());
   }
 
   void InitializeMateriaDropdown() {
     if (materiaDropdown != null) {
       materiaDropdown.ClearOptions();
-      List < string > opzioni = new List < string > ();
+      List<string> opzioni = new List<string>();
       foreach(Corso corso in corsi) {
         opzioni.Add(corso.materia);
       }
@@ -218,30 +224,21 @@ public class GameManager: MonoBehaviour {
       materiaDropdown.AddOptions(opzioni);
 
       //non accede al dropdown se non ci sono opzioni
-      if (corsi.Count > 0) {
+      if (corsi.Count > 0)
+      {
         materiaDropdown.value = 0;
         materiaDropdown.RefreshShownValue();
       }
-
-      materiaDropdown.onValueChanged.RemoveAllListeners();
-      materiaDropdown.onValueChanged.AddListener(OnMateriaDropdownChanged);
-    }
-  }
-
-  private void OnMateriaDropdownChanged(int index) {
-    if (index >= 0 && index < corsi.Count) {
-      currentCorso = corsi[index];
-      Debug.Log("Corso corrente cambiato a: " + currentCorso.materia);
-      RefreshValutazioniGrid();
     }
   }
 
   void InitializeTipoEsameDropdown() {
     if (tipoEsameDropdown != null) {
       tipoEsameDropdown.ClearOptions();
-      List < string > opzioni = new List < string > ();
+      List<string> opzioni = new List<string>();
       //cicla i valori dell'enum e vengono convertiti in testo dal toString
-      foreach(TipoEsame tipo in Enum.GetValues(typeof (TipoEsame))) {
+      foreach (TipoEsame tipo in Enum.GetValues(typeof(TipoEsame)))
+      {
         opzioni.Add(tipo.ToString());
       }
       tipoEsameDropdown.AddOptions(opzioni);
@@ -259,14 +256,17 @@ public class GameManager: MonoBehaviour {
       return;
     }
 
-    if (currentCorso == null) {
-      Debug.LogError("Nessun Corso selezionato a cui aggiungere un Voto");
+    if (materiaDropdown.value < 0 || materiaDropdown.value >= corsi.Count) {
+      Debug.LogError("Nessuna materia selezionata");
       return;
     }
+    
+    Corso corsoSelezionato = corsi[materiaDropdown.value];
 
     //TryParse serve per convertire stringhe in numeri decimali 
     // out double valutazione crea una variasbile con il risultato
-    if (!double.TryParse(valutazioneInputField.text, out double valutazione)) {
+    if (!double.TryParse(valutazioneInputField.text, out double valutazione))
+    {
       Debug.LogError("Input Valutazione non valido. Inserisci un numero");
       return;
     }
@@ -278,20 +278,19 @@ public class GameManager: MonoBehaviour {
     DateTime data;
     //TryParseExact controlla se una stringa cossisponde ad un formato specifico
     //in questo caso AAAA-MM-GG
-    if (!DateTime.TryParseExact(dataInputField.text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out data)) {
+    if (!DateTime.TryParseExact(dataInputField.text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out data))
+    {
       Debug.LogError("Input Data non valido. Utilizza il formato AAAA-MM-GG");
       return;
     }
 
     //cast esplicito
-    TipoEsame tipo = (TipoEsame) tipoEsameDropdown.value;
+    TipoEsame tipo = (TipoEsame)tipoEsameDropdown.value;
     Voto nuovoVoto = new Voto(valutazione, peso, data, tipo);
-    aggiungiVoto(currentCorso, nuovoVoto);
+    aggiungiVoto(corsoSelezionato, nuovoVoto);
 
-    Debug.Log($"Added Voto: {nuovoVoto.valutazione} (Peso: {nuovoVoto.peso}) to {currentCorso.materia}");
+    Debug.Log($"Added Voto: {nuovoVoto.valutazione} (Peso: {nuovoVoto.peso}) to {corsoSelezionato.materia}");
 
-    DisplayVotoInUI(nuovoVoto);
-    AggiornaLayout();
     ResetInputFields();
     inserimentoVotoPanel.SetActive(false);
   }
@@ -314,67 +313,107 @@ public class GameManager: MonoBehaviour {
     }
   }
 
-  void DisplayVotoInUI(Voto voto) {
+  void DisplayVotoInUI(Voto voto, Corso corso) {
     if (valutazioniContentPanel == null) {
       Debug.LogError("Il Pannello Contenuto Valutazioni non è assegnato");
       return;
     }
 
     //controlla se il prefab votoUIPrefab è assegnato
-    if (votoUIPrefab != null) {
+    if (votoUIPrefab != null){
       //Instantiate crea una copia dei un obj
       GameObject votoUI = Instantiate(votoUIPrefab, valutazioniContentPanel);
 
       //creazione del contenitore del votop
-      LayoutElement layoutElement = votoUI.GetComponent < LayoutElement > ();
-      if (layoutElement == null) {
-        layoutElement = votoUI.AddComponent < LayoutElement > ();
+      LayoutElement layoutElement = votoUI.GetComponent<LayoutElement>();
+      if (layoutElement == null)
+      {
+        layoutElement = votoUI.AddComponent<LayoutElement>();
       }
       layoutElement.preferredWidth = dimensioneCella.x;
       layoutElement.preferredHeight = dimensioneCella.y;
 
-      TextMeshProUGUI testo = votoUI.GetComponentInChildren < TextMeshProUGUI > ();
-      if (testo != null) {
-        testo.text = $ "Voto: {voto.valutazione}\nPeso: {voto.peso}\nData: {voto.data:yyyy-MM-dd}\nTipo: {voto.tipo}\n Materia: {currentCorso.materia}";
-      } else {
+      TextMeshProUGUI testo = votoUI.GetComponentInChildren<TextMeshProUGUI>();
+      if (testo != null)
+      {
+        testo.text = $"Materia: {corso.materia}\nVoto: {voto.valutazione}\nPeso: {voto.peso}\nData: {voto.data:yyyy-MM-dd}\nTipo: {voto.tipo}";
+      }
+      else
+      {
         Debug.LogWarning("Nessun componente TextMeshPro trovato nel prefab");
       }
-    } else {
+    }
+    else
+    {
       Debug.LogWarning("Prefab UI Voto non assegnato");
     }
     AggiornaLayout();
   }
 
   public void OrdinaPerDataUI() {
-    if (currentCorso != null) {
-      currentCorso.OrdinaPerData();
-      RefreshValutazioniGrid();
-    }
+    ordinamentoCorrente = "data";
+    RefreshValutazioniGrid();
   }
 
   public void OrdinaPerValutazioneUI() {
-    if (currentCorso != null) {
-      currentCorso.OrdinaPerValutazione();
-      RefreshValutazioniGrid();
-    }
+    ordinamentoCorrente = "valutazione";
+    RefreshValutazioniGrid();
+  }
+
+  public void OrdinaPerCorsoUI() {
+    ordinamentoCorrente = "corso";
+    RefreshValutazioniGrid();
   }
 
   private void RefreshValutazioniGrid() {
-    //distruggi tutti gli elementi esistenti
-    foreach(Transform child in valutazioniContentPanel) {
+    //distrugge tutti gli elementi esistenti
+    foreach (Transform child in valutazioniContentPanel)
+    {
       Destroy(child.gameObject);
     }
 
     //controlla se c'è un corso selezionaro
-    if (currentCorso == null || currentCorso.voti == null) {
-      Debug.LogWarning("Nessun corso selezionato o lista voti vuota");
+    if (corsi == null || corsi.Count == 0)
+    {
+      Debug.LogWarning("Nessun corso disponibile");
       return;
     }
 
-    //ricrea gli elementi UI
-    foreach(Voto voto in currentCorso.voti) {
-      DisplayVotoInUI(voto);
+    //crea una lista dei corsi con i propri voti per ordinarli insieme
+    List<(Voto voto, Corso corso)> tuttiVoti = new List<(Voto, Corso)>();
+    
+    foreach (Corso corso in corsi)
+    {
+      if (corso.voti != null)
+      {
+        foreach (Voto voto in corso.voti)
+        {
+          tuttiVoti.Add((voto, corso));
+        }
+      }
     }
+
+    //seleziona l'ordinamento ed ordina
+    switch (ordinamentoCorrente) {
+      //OrderByDescending è una funzione LINQ che ordina valori in modo decrescente datagli uan chiavr
+      //tuttiVoti è una lista di tuple voto-corso
+      //per ogni elemento si estrae dal voto o la data o la valutazione
+      //usato il toList per convertire la lista che da un output OrderByDescending (IEnumerable<T>) in una lista normale
+      case "data":
+        tuttiVoti = tuttiVoti.OrderByDescending(x => x.voto.data).ToList();
+        break;
+      case "valutazione":
+        tuttiVoti = tuttiVoti.OrderByDescending(x => x.voto.valutazione).ToList();
+        break;
+      case "corso":
+      default:
+        break;
+    }
+
+    //cicla le tuple e le visualizza mell interfaccia
+    foreach ((Voto voto, Corso corso) elemento in tuttiVoti) {
+    DisplayVotoInUI(elemento.voto, elemento.corso);
+  }
 
     AggiornaLayout();
   }
